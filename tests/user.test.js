@@ -1,5 +1,6 @@
 import 'cross-fetch/polyfill' 
 import ApolloBoost, { gql } from 'apollo-boost'
+import bcrypt from 'bcryptjs'
 import 'core-js'
 import 'regenerator-runtime/runtime'
 import prisma from '../src/prisma.js'
@@ -7,6 +8,42 @@ import { extractFragmentReplacements } from 'prisma-binding'
 
 const client = new ApolloBoost({
     uri: 'http://localhost:4000'
+})
+
+beforeEach(async () => {
+    await prisma.mutation.deleteManyPosts()
+    await prisma.mutation.deleteManyUsers()
+    const createdUser = await prisma.mutation.createUser({
+        data: {
+            name: 'JenDummy',
+            email: 'jen@example.de',
+            password: bcrypt.hashSync('red098!@#')
+        }
+    })
+    await prisma.mutation.createPost({
+        data: {
+            title: "Test Title 1",
+            body: "This is a published Test 1",
+            published: true,
+            author: {
+                connect: {
+                    id: createdUser.id
+                }
+            }
+        }
+    })
+    await prisma.mutation.createPost({
+        data: {
+            title: "Test Title 2",
+            body: "This is an unpublished Test 2",
+            published: false,
+            author: {
+                connect: {
+                    id: createdUser.id
+                }
+            }
+        }
+    })
 })
 
 test('should create a new user', async () => {
@@ -31,6 +68,6 @@ test('should create a new user', async () => {
     }))
 
     const userExists = await prisma.exists.User({ id: response.data.id })
-    expects(userExists).toBe(true)
+    expect(userExists).toBe(true)
 })  
 
