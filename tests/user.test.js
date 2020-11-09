@@ -1,6 +1,4 @@
 import 'cross-fetch/polyfill' 
-import { gql } from 'apollo-boost'
-import 'core-js'
 import 'regenerator-runtime/runtime'
 import prisma from '../src/prisma.js'
 import seedDatabase, { userOne } from './utils/seedDatabase'
@@ -31,24 +29,16 @@ test('should create a new user', async () => {
 })  
 
 test('Should expose public author profiles', async () => {
-    const getUsers = gql`
-        query {
-            users {
-                id
-                name
-                email
-            }
-        }
-    `
-
     const response = await client.query({ query: getUsers })
 
-    expect(response.data.users.length).toBe(1)
+    expect(response.data.users.length).toBe(2)
     expect(response.data.users[0].email).toBe(null)
+    expect(response.data.users[1].email).toBe(null)
     expect(response.data.users[0].name).toBe('JenDummy')
+    expect(response.data.users[1].name).toBe('PeterDummy')
 })
 
-test('Should not logn with bad credentials', async () => {
+test('Should not login with bad credentials', async () => {
     const variables = {
         data: {
             email: "jeff@example.com",

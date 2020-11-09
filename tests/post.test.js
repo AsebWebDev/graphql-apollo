@@ -1,5 +1,4 @@
 import 'cross-fetch/polyfill' 
-import { gql } from 'apollo-boost'
 import 'core-js'
 import 'regenerator-runtime/runtime'
 import prisma from '../src/prisma.js'
