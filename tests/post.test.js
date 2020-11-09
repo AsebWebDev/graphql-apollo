@@ -5,26 +5,13 @@ import 'regenerator-runtime/runtime'
 import prisma from '../src/prisma.js'
 import seedDatabase, { userOne, postOne, postTwo } from './utils/seedDatabase'
 import getClient from './utils/getClient'
+import { getPosts, getMyPosts, updatePost, createPost, deletePost } from './utils/operations'
 
 const client = getClient()
 
 beforeEach(seedDatabase)
 
 test('Should expose only one published post', async () => {
-    const getPosts = gql`
-        query {
-            posts {
-                title
-                body
-                published
-                author { 
-                    id
-                    name
-                }
-            }
-        }
-    `
-
     const response = await client.query({ query: getPosts })
 
     expect(response.data.posts.length).toBe(1)
@@ -34,21 +21,6 @@ test('Should expose only one published post', async () => {
 
 test('Should expose authenticated and unpublished posts of UserOne', async () => {
     const client = getClient(userOne.jwt)
-
-    const getMyPosts = gql`
-        query {
-            myPosts {
-                title
-                body
-                published
-                author { 
-                    id
-                    name
-                }
-            }
-        }
-    `
-
     const response = await client.query({ query: getMyPosts })
 
     expect(response.data.myPosts.length).toBe(2)
@@ -56,24 +28,8 @@ test('Should expose authenticated and unpublished posts of UserOne', async () =>
 
 test('should be able to update own post', async () => {
     const client = getClient(userOne.jwt)
-
-    const updatePost = gql`
-        mutation { 
-            updatePost(
-                id: "${postOne.post.id}",
-                data: {
-                    published: false
-                }
-            ){
-                id
-                title
-                body
-                published
-            }
-        }    
-    `
-
-    const { data } = await client.mutate({ mutation: updatePost })
+    const variables = { id: postOne.post.id, data: { published: false } ,}
+    const { data } = await client.mutate({ mutation: updatePost, variables })
     const exists = await prisma.exists.Post({ id: postOne.post.id, published: false })
     expect(data.updatePost.published).toBe(false)
     expect(exists).toBe(true)
@@ -81,25 +37,14 @@ test('should be able to update own post', async () => {
 
 test('should be able to create post', async () => {
     const client = getClient(userOne.jwt)
-
-    const createPost = gql`
-        mutation { 
-            createPost(
-                data: { 
-                    title: "${postOne.input.title}",
-                    body: "${postOne.input.body}",
-                    published: ${postOne.input.published},
-                }
-            ){
-                id
-                title
-                body
-                published
-            }
-        }    
-    `
-
-    const { data } = await client.mutate({ mutation: createPost })
+    const variables = { 
+        data: {
+            title: postOne.input.title,
+            body: postOne.input.body,
+            published: postOne.input.published,
+        }
+    }
+    const { data } = await client.mutate({ mutation: createPost, variables })
     const exists = await prisma.exists.Post({ id: postOne.post.id })
     expect(data.createPost.title).toBe(postOne.input.title)
     expect(data.createPost.body).toBe(postOne.input.body)
@@ -109,20 +54,8 @@ test('should be able to create post', async () => {
 
 test('should be able to delete post', async () => {
     const client = getClient(userOne.jwt)
-
-    const deletePost = gql`
-        mutation { 
-            deletePost(
-                id: "${postTwo.post.id}"
-            ){
-                id
-                title
-                body
-                published
-            }
-        }    
-    `
-    await client.mutate({ mutation: deletePost })
+    const variables = { id: postTwo.post.id }
+    await client.mutate({ mutation: deletePost, variables })
     const exists = await prisma.exists.Post({ id: postTwo.post.id })
     expect(exists).toBe(false)
 })

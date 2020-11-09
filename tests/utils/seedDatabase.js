@@ -12,6 +12,16 @@ const userOne = {
     jwt: null
 }
 
+const userTwo = {
+    input: {
+        name: 'PeterDummy',
+        email: 'peter@example.de',
+        password: bcrypt.hashSync('red099!@#')
+    },
+    user: null,
+    jwt: null
+}
+
 const postOne = {
     input: {
         title: "Test Title 1",
@@ -68,4 +78,4 @@ const seedDatabase = async () => {
     })
 }
 
-export { seedDatabase as default, userOne, postOne, postTwo }
+export { seedDatabase as default, userOne, postOne, postTwo, userTwo}
