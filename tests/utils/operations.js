@@ -1,6 +1,4 @@
 import { gql } from 'apollo-boost'
-import { postOne } from './seedDatabase'
-
 
 const createUser = gql`
     mutation ($data:CreateUserInput!) {
@@ -124,7 +122,29 @@ const deleteComment = gql`
             id
             text
         }
-    }    
+    }     
 `
 
-export { createUser, login, getProfile, getUsers, getPosts, getMyPosts, updatePost, createPost, deletePost, deleteComment }
+const subscribeToComments = gql`
+    subscription($postId: ID!) {
+        comment(
+            postId: $postId
+        ) {
+            mutation
+            node {
+                id
+                text
+            }
+        }
+    }
+`
+
+const subscribeToPosts = gql`
+    subscription {
+        post {
+            mutation
+        }
+    }
+`
+
+export { createUser, login, getProfile, getUsers, getPosts, getMyPosts, updatePost, createPost, deletePost, deleteComment, subscribeToComments, subscribeToPosts }
